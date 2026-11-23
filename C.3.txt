@@ -1,0 +1,68 @@
+LCD DISPLAY
+
+#include "main.h"
+
+void lcd_enable(void)
+{
+    GPIOA->ODR |= (1 << 1);
+    HAL_Delay(1);
+
+    GPIOA->ODR &= ~(1 << 1);
+    HAL_Delay(1);
+}
+
+void lcd_command(uint8_t cmd)
+{
+    GPIOA->ODR &= ~(1 << 0);
+
+    GPIOA->ODR =
+    (GPIOA->ODR & 0xFFC3) | ((cmd & 0xF0) >> 2);
+
+    lcd_enable();
+
+    GPIOA->ODR =
+    (GPIOA->ODR & 0xFFC3) | ((cmd & 0x0F) << 2);
+
+    lcd_enable();
+}
+
+void lcd_data(uint8_t data)
+{
+    GPIOA->ODR |= (1 << 0);
+
+    GPIOA->ODR =
+    (GPIOA->ODR & 0xFFC3) | ((data & 0xF0) >> 2);
+
+    lcd_enable();
+
+    GPIOA->ODR =
+    (GPIOA->ODR & 0xFFC3) | ((data & 0x0F) << 2);
+
+    lcd_enable();
+}
+
+int main(void)
+{
+    HAL_Init();
+    SystemClock_Config();
+    MX_GPIO_Init();
+
+    HAL_Delay(50);
+
+    lcd_command(0x02);
+    lcd_command(0x28);
+    lcd_command(0x0C);
+    lcd_command(0x06);
+    lcd_command(0x01);
+
+    char msg[] = "HELLO WORLD";
+
+    for(int i = 0; msg[i] != '\0'; i++)
+    {
+        lcd_data(msg[i]);
+    }
+
+    while(1)
+    {
+    }
+}

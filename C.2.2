@@ -1,0 +1,53 @@
+STEPPER MOTOR CONTROLLER 
+
+#include "main.h"
+
+int main(void)
+{
+    uint8_t sequence[8] =
+    {
+        0x01, 0x03, 0x02, 0x06,
+        0x04, 0x0C, 0x08, 0x09
+    };
+
+    uint8_t i = 0;
+    uint8_t step;
+
+    HAL_Init();
+
+    SystemClock_Config();
+
+    MX_GPIO_Init();
+
+    while (1)
+    {
+        // Read direction switch using AND and RIGHT SHIFT
+        uint8_t direction =
+        (GPIOA->IDR >> 4) & 1U;
+
+        // Forward or reverse direction using XOR
+        if (direction == 1)
+        {
+            step = i;
+            i = (i + 1) & 7U;
+        }
+        else
+        {
+            step = i ^ 7U;
+            i = (i + 1) & 7U;
+        }
+
+        // Control motor using AND, NOT and OR
+        GPIOA->ODR =
+        (GPIOA->ODR & ~0x0FU) |
+        (sequence[step] & 0x0FU);
+
+        HAL_Delay(5);
+    }
+}
+
+
+
+
+
+
